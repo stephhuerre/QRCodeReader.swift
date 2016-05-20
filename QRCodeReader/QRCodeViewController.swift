@@ -30,9 +30,10 @@ import AVFoundation
 /// Convenient controller to display a view to scan/read 1D or 2D bar codes like the QRCodes. It is based on the `AVFoundation` framework from Apple. It aims to replace ZXing or ZBar for iOS 7 and over.
 public class QRCodeReaderViewController: UIViewController {
   private var cameraView = ReaderOverlayView()
-  private var cancelButton = UIButton()
-  private var switchCameraButton: SwitchCameraButton?
-  private var toggleTorchButton: ToggleTorchButton?
+  public var cancelButton = UIButton()
+  public var switchCameraButton: SwitchCameraButton?
+  public var toggleTorchButton: ToggleTorchButton?
+  public var updateOrientation = true
 
   /// The code reader object used to scan the bar code.
   public let codeReader: QRCodeReader
@@ -178,11 +179,52 @@ public class QRCodeReaderViewController: UIViewController {
 
   // MARK: - Managing the Orientation
 
-  func orientationDidChanged(notification: NSNotification) {
+  public func setOrientation(orientation: UIDeviceOrientation) {
+    let captureVideoOrientation = QRCodeReader.videoOrientationFromDeviceOrientation(
+      orientation,
+      withSupportedOrientations: supportedInterfaceOrientations(),
+      fallbackOrientation: codeReader.previewLayer.connection.videoOrientation)
+    
+    codeReader.previewLayer.connection.videoOrientation = captureVideoOrientation
     cameraView.setNeedsDisplay()
-
+  }
+  
+  func orientationDidChanged(notification: NSNotification) {
+    guard updateOrientation else { return }
+    
+    cameraView.setNeedsDisplay()
+    
+    let optSupportedOrientations = NSBundle.mainBundle().objectForInfoDictionaryKey("UISupportedInterfaceOrientations")
     if let device = notification.object as? UIDevice where codeReader.previewLayer.connection.supportsVideoOrientation {
-      codeReader.previewLayer.connection.videoOrientation = QRCodeReader.videoOrientationFromDeviceOrientation(device.orientation, withSupportedOrientations: supportedInterfaceOrientations(), fallbackOrientation: codeReader.previewLayer.connection.videoOrientation)
+      if let supportedOrientations = optSupportedOrientations {
+        var isSupportedOrientations = false
+        for i in 0..<supportedOrientations.count {
+          
+          let supportedOrientation = supportedOrientations.objectAtIndex(i) as! String
+          switch device.orientation {
+            case .Portrait:
+              if supportedOrientation == "UIInterfaceOrientationPortrait" {
+                isSupportedOrientations = true
+              }
+            case .PortraitUpsideDown:
+              if supportedOrientation == "UIInterfaceOrientationPortraitUpsideDown" {
+                isSupportedOrientations = true
+              }
+            case .LandscapeLeft:
+              if supportedOrientation == "UIInterfaceOrientationLandscapeLeft" {
+                isSupportedOrientations = true
+              }
+            case .LandscapeRight:
+              if supportedOrientation == "UIInterfaceOrientationLandscapeRight" {
+                isSupportedOrientations = true
+              }
+            default : ()
+          }
+        }
+        if isSupportedOrientations {
+          codeReader.previewLayer.connection.videoOrientation = QRCodeReader.videoOrientationFromDeviceOrientation(device.orientation, withSupportedOrientations: supportedInterfaceOrientations(), fallbackOrientation: codeReader.previewLayer.connection.videoOrientation)
+        }
+      }
     }
   }
 
@@ -226,24 +268,31 @@ public class QRCodeReaderViewController: UIViewController {
   }
 
   private func setupAutoLayoutConstraints() {
-    let views = ["cameraView": cameraView, "cancelButton": cancelButton]
-
-    view.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("V:|[cameraView][cancelButton(40)]|", options: [], metrics: nil, views: views))
-    view.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("H:|[cameraView]|", options: [], metrics: nil, views: views))
-    view.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("H:|-[cancelButton]-|", options: [], metrics: nil, views: views))
-
-    if let _switchCameraButton = switchCameraButton {
-      let switchViews: [String: AnyObject] = ["switchCameraButton": _switchCameraButton, "topGuide": topLayoutGuide]
-
-      view.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("V:[topGuide]-[switchCameraButton(50)]", options: [], metrics: nil, views: switchViews))
-      view.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("H:[switchCameraButton(70)]|", options: [], metrics: nil, views: switchViews))
-    }
-
-    if let _toggleTorchButton = toggleTorchButton {
-      let toggleViews: [String: AnyObject] = ["toggleTorchButton": _toggleTorchButton, "topGuide": topLayoutGuide]
-
-      view.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("V:[topGuide]-[toggleTorchButton(50)]", options: [], metrics: nil, views: toggleViews))
-      view.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("H:|[toggleTorchButton(70)]", options: [], metrics: nil, views: toggleViews))
+    if true {  // Disable cancel & torch buttons
+      let views = ["cameraView": cameraView]
+      
+      view.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("H:|[cameraView]|", options: [], metrics: nil, views: views))
+      view.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("V:|[cameraView]|", options: [], metrics: nil, views: views))
+    } else {
+      let views = ["cameraView": cameraView, "cancelButton": cancelButton]
+      
+      view.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("V:|[cameraView][cancelButton(40)]|", options: [], metrics: nil, views: views))
+      view.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("H:|[cameraView]|", options: [], metrics: nil, views: views))
+      view.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("H:|-[cancelButton]-|", options: [], metrics: nil, views: views))
+      
+      if let _switchCameraButton = switchCameraButton {
+        let switchViews: [String: AnyObject] = ["switchCameraButton": _switchCameraButton, "topGuide": topLayoutGuide]
+        
+        view.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("V:[topGuide]-[switchCameraButton(50)]", options: [], metrics: nil, views: switchViews))
+        view.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("H:[switchCameraButton(70)]|", options: [], metrics: nil, views: switchViews))
+      }
+      
+      if let _toggleTorchButton = toggleTorchButton {
+        let toggleViews: [String: AnyObject] = ["toggleTorchButton": _toggleTorchButton, "topGuide": topLayoutGuide]
+        
+        view.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("V:[topGuide]-[toggleTorchButton(50)]", options: [], metrics: nil, views: toggleViews))
+        view.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("H:|[toggleTorchButton(70)]", options: [], metrics: nil, views: toggleViews))
+      }
     }
   }
 
