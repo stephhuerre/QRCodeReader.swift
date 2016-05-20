@@ -43,13 +43,13 @@ public class QRCodeReaderViewController: UIViewController {
   let showTorchButton: Bool
 
   // MARK: ui visibility
-  func setSwitchCameraButtonHidden(hidden: Bool) {
+  public func setSwitchCameraButtonHidden(hidden: Bool) {
     switchCameraButton?.hidden = hidden
   }
-  func setToggleTorchButtonHidden(hidden: Bool) {
+  public func setToggleTorchButtonHidden(hidden: Bool) {
     toggleTorchButton?.hidden = hidden
   }
-  func setCancelButtonHidden(hidden: Bool) {
+  public func setCancelButtonHidden(hidden: Bool) {
     cancelButton.hidden = hidden
   }
   
