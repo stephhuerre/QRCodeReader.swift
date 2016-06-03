@@ -35,10 +35,24 @@ public class QRCodeReaderViewController: UIViewController {
   private var toggleTorchButton: ToggleTorchButton?
   public var updateOrientation = true
 
+  private var _targetFrame: CGRect = CGRectNull
+  public var targetFrame: CGRect {
+    get { return _targetFrame }
+    set {
+      _targetFrame = newValue
+      codeReader.limitRectOfInterest(_targetFrame)
+    }
+  }
+
+  public var stopScanningWhenCodeIsFound: Bool {
+    get { return codeReader.stopScanningWhenCodeIsFound }
+    set { codeReader.stopScanningWhenCodeIsFound = newValue }
+  }
+  
   /// The code reader object used to scan the bar code.
   public let codeReader: QRCodeReader
 
-  let startScanningAtLoad: Bool
+  public let startScanningAtLoad: Bool
   let showSwitchCameraButton: Bool
   let showTorchButton: Bool
 

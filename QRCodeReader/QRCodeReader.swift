@@ -94,7 +94,16 @@ public final class QRCodeReader: NSObject, AVCaptureMetadataOutputObjectsDelegat
 
     configureDefaultComponents()
   }
-
+  
+  /**
+   limit visible area of the previewLayer to accept barcode input (ignore the rest)
+  */
+  func limitRectOfInterest(rect: CGRect) {
+    let visibleMetadataOutputRect: CGRect = previewLayer.metadataOutputRectOfInterestForRect(rect/*previewLayer.bounds*/)
+    metadataOutput.rectOfInterest = visibleMetadataOutputRect
+    //print("Set scan limit of interest : \(rect) <=> \(visibleMetadataOutputRect)")
+  }
+  
   // MARK: - Initializing the AV Components
 
   private func configureDefaultComponents() {
