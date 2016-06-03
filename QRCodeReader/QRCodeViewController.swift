@@ -52,7 +52,7 @@ public class QRCodeReaderViewController: UIViewController {
   /// The code reader object used to scan the bar code.
   public let codeReader: QRCodeReader
 
-  public let startScanningAtLoad: Bool
+  public var startScanningAtLoad: Bool
   let showSwitchCameraButton: Bool
   let showTorchButton: Bool
 
