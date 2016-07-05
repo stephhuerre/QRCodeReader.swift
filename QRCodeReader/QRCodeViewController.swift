@@ -49,6 +49,11 @@ public class QRCodeReaderViewController: UIViewController {
     set { codeReader.stopScanningWhenCodeIsFound = newValue }
   }
   
+  public var stopScanningWithoutStopingCamera: Bool {
+    get { return codeReader.stopScanningWithoutStopingCamera }
+    set { codeReader.stopScanningWithoutStopingCamera = newValue }
+  }
+  
   /// The code reader object used to scan the bar code.
   public let codeReader: QRCodeReader
 

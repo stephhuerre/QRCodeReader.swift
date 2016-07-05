@@ -55,6 +55,8 @@ public final class QRCodeReader: NSObject, AVCaptureMetadataOutputObjectsDelegat
   var metadataOutput = AVCaptureMetadataOutput()
   var session        = AVCaptureSession()
 
+  var stopScanningWithoutStopingCamera = false
+  
   // MARK: - Managing the Properties
 
   /// CALayer that you use to display video as it is being captured by an input device.
@@ -145,12 +147,21 @@ public final class QRCodeReader: NSObject, AVCaptureMetadataOutputObjectsDelegat
     if !session.running {
       session.startRunning()
     }
+    if stopScanningWithoutStopingCamera {
+      if session.canAddOutput(metadataOutput) {
+        session.addOutput(metadataOutput)
+      }
+    }
   }
 
   /// Stops scanning the codes.
   public func stopScanning() {
-    if session.running {
-      session.stopRunning()
+    if stopScanningWithoutStopingCamera {
+      session.removeOutput(metadataOutput)
+    } else {
+      if session.running {
+        session.stopRunning()
+      }
     }
   }
 
