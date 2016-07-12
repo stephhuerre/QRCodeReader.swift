@@ -143,11 +143,14 @@ public final class QRCodeReader: NSObject, AVCaptureMetadataOutputObjectsDelegat
 
    *Notes: if `stopScanningWhenCodeIsFound` is sets to true (default behaviour), each time the scanner found a code it calls the `stopScanning` method.*
    */
-  public func startScanning() {
+  public func startScanning(onlyCamera: Bool) {
     if !session.running {
+      if onlyCamera {
+        session.removeOutput(metadataOutput)
+      }
       session.startRunning()
     }
-    if stopScanningWithoutStopingCamera {
+    if stopScanningWithoutStopingCamera && !onlyCamera {
       if session.canAddOutput(metadataOutput) {
         session.addOutput(metadataOutput)
       }

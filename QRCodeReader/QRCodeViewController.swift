@@ -58,6 +58,7 @@ public class QRCodeReaderViewController: UIViewController {
   public let codeReader: QRCodeReader
 
   public var startScanningAtLoad: Bool
+  public var startCameraAtLoad = false  // Has no effect if startScanningAtLoad = true
   let showSwitchCameraButton: Bool
   let showTorchButton: Bool
 
@@ -192,6 +193,8 @@ public class QRCodeReaderViewController: UIViewController {
 
     if startScanningAtLoad {
       startScanning()
+    } else if startCameraAtLoad {
+      startScanning(true)
     }
   }
 
@@ -329,8 +332,8 @@ public class QRCodeReaderViewController: UIViewController {
   // MARK: - Controlling the Reader
 
   /// Starts scanning the codes.
-  public func startScanning() {
-    codeReader.startScanning()
+  public func startScanning(onlyCamera: Bool = false) {
+    codeReader.startScanning(onlyCamera)
   }
 
   /// Stops scanning the codes.
