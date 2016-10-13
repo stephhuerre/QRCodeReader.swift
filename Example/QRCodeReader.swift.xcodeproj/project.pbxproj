@@ -296,6 +296,7 @@
 					};
 					CE8FFED51BAB4E7F00D43F38 = {
 						CreatedOnToolsVersion = 7.0;
+						LastSwiftMigration = 0810;
 					};
 				};
 			};
@@ -578,6 +579,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.yannickloriot.QRCodeReader;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 3.0;
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
 			};
@@ -601,6 +603,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.yannickloriot.QRCodeReader;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 3.0;
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
 			};

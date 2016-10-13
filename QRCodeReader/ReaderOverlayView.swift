@@ -43,7 +43,7 @@ final class ReaderOverlayView: UIView {
  */
 
   init() {
-    super.init(frame: CGRectZero)  // Workaround for init in iOS SDK 8.3
+    super.init(frame: CGRect.zero)  // Workaround for init in iOS SDK 8.3
 
     //layer.addSublayer(overlay)
   }
@@ -60,7 +60,7 @@ final class ReaderOverlayView: UIView {
     //layer.addSublayer(overlay)
   }
 
-  override func drawRect(rect: CGRect) {
+  override func draw(_ rect: CGRect) {
     /*
     var innerRect = CGRectInset(rect, 50, 50)
     let minSize   = min(innerRect.width, innerRect.height)
