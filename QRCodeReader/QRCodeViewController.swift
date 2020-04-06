@@ -55,7 +55,7 @@ open class QRCodeReaderViewController: UIViewController {
   }
   
   /// The code reader object used to scan the bar code.
-  open let codeReader: QRCodeReader
+  let codeReader: QRCodeReader
 
   open var startScanningAtLoad: Bool
   open var startCameraAtLoad = false  // Has no effect if startScanningAtLoad = true
@@ -98,7 +98,7 @@ open class QRCodeReaderViewController: UIViewController {
    :see: init(cancelButtonTitle:, metadataObjectTypes:)
    */
   convenience public init(cancelButtonTitle: String, startScanningAtLoad: Bool = true) {
-    self.init(cancelButtonTitle: cancelButtonTitle, metadataObjectTypes: [AVMetadataObjectTypeQRCode], startScanningAtLoad: startScanningAtLoad)
+    self.init(cancelButtonTitle: cancelButtonTitle, metadataObjectTypes: [AVMetadataObject.ObjectType.qr], startScanningAtLoad: startScanningAtLoad)
   }
 
   /**
@@ -109,7 +109,7 @@ open class QRCodeReaderViewController: UIViewController {
 
    :see: init(cancelButtonTitle:, metadataObjectTypes:)
    */
-  convenience public init(metadataObjectTypes: [String], startScanningAtLoad: Bool = true) {
+  convenience public init(metadataObjectTypes: [AVMetadataObject.ObjectType], startScanningAtLoad: Bool = true) {
     self.init(cancelButtonTitle: "Cancel", metadataObjectTypes: metadataObjectTypes, startScanningAtLoad: startScanningAtLoad)
   }
 
@@ -122,7 +122,7 @@ open class QRCodeReaderViewController: UIViewController {
 
    :see: init(cancelButtonTitle:, coderReader:, startScanningAtLoad:)
    */
-  convenience public init(cancelButtonTitle: String, metadataObjectTypes: [String], startScanningAtLoad: Bool = true) {
+  convenience public init(cancelButtonTitle: String, metadataObjectTypes: [AVMetadataObject.ObjectType], startScanningAtLoad: Bool = true) {
     let reader = QRCodeReader(metadataObjectTypes: metadataObjectTypes)
 
     self.init(cancelButtonTitle: cancelButtonTitle, codeReader: reader, startScanningAtLoad: startScanningAtLoad)
@@ -174,7 +174,7 @@ open class QRCodeReaderViewController: UIViewController {
 
     cameraView.layer.insertSublayer(codeReader.previewLayer, at: 0)
 
-    NotificationCenter.default.addObserver(self, selector: #selector(orientationDidChanged), name: NSNotification.Name.UIDeviceOrientationDidChange, object: nil)
+    NotificationCenter.default.addObserver(self, selector: #selector(orientationDidChanged), name: UIDevice.orientationDidChangeNotification, object: nil)
   }
 
   required public init?(coder aDecoder: NSCoder) {
@@ -213,22 +213,25 @@ open class QRCodeReaderViewController: UIViewController {
   // MARK: - Managing the Orientation
 
   open func setOrientation(_ orientation: UIDeviceOrientation) {
+    guard let connection = codeReader.previewLayer.connection else {
+      return
+    }
     let captureVideoOrientation = QRCodeReader.videoOrientationFromDeviceOrientation(
       orientation,
       withSupportedOrientations: supportedInterfaceOrientations,
-      fallbackOrientation: codeReader.previewLayer.connection.videoOrientation)
+      fallbackOrientation: connection.videoOrientation)
     
-    codeReader.previewLayer.connection.videoOrientation = captureVideoOrientation
+    connection.videoOrientation = captureVideoOrientation
     cameraView.setNeedsDisplay()
   }
   
-  func orientationDidChanged(_ notification: Notification) {
+  @objc func orientationDidChanged(_ notification: Notification) {
     guard updateOrientation else { return }
     
     cameraView.setNeedsDisplay()
     
     let optSupportedOrientations = Bundle.main.object(forInfoDictionaryKey: "UISupportedInterfaceOrientations")
-    if let device = notification.object as? UIDevice, codeReader.previewLayer.connection.isVideoOrientationSupported {
+    if let device = notification.object as? UIDevice, let connection = codeReader.previewLayer.connection, connection.isVideoOrientationSupported {
       if let supportedOrientations = optSupportedOrientations {
         var isSupportedOrientations = false
         for i in 0..<(supportedOrientations as AnyObject).count {
@@ -255,7 +258,7 @@ open class QRCodeReaderViewController: UIViewController {
           }
         }
         if isSupportedOrientations {
-          codeReader.previewLayer.connection.videoOrientation = QRCodeReader.videoOrientationFromDeviceOrientation(device.orientation, withSupportedOrientations: supportedInterfaceOrientations, fallbackOrientation: codeReader.previewLayer.connection.videoOrientation)
+          codeReader.previewLayer.connection?.videoOrientation = QRCodeReader.videoOrientationFromDeviceOrientation(device.orientation, withSupportedOrientations: supportedInterfaceOrientations, fallbackOrientation: codeReader.previewLayer.connection?.videoOrientation)
         }
       }
     }
@@ -270,10 +273,10 @@ open class QRCodeReaderViewController: UIViewController {
 
     codeReader.previewLayer.frame = CGRect(x: 0, y: 0, width: view.frame.size.width, height: view.frame.size.height)
 
-    if codeReader.previewLayer.connection.isVideoOrientationSupported {
+    if let connection = codeReader.previewLayer.connection, connection.isVideoOrientationSupported {
       let orientation = UIDevice.current.orientation
 
-      codeReader.previewLayer.connection.videoOrientation = QRCodeReader.videoOrientationFromDeviceOrientation(orientation, withSupportedOrientations: supportedInterfaceOrientations)
+      connection.videoOrientation = QRCodeReader.videoOrientationFromDeviceOrientation(orientation, withSupportedOrientations: supportedInterfaceOrientations)
     }
 
     if showSwitchCameraButton && codeReader.hasFrontDevice() {
@@ -294,7 +297,7 @@ open class QRCodeReaderViewController: UIViewController {
     }
 
     cancelButton.translatesAutoresizingMaskIntoConstraints = false
-    cancelButton.setTitle(cancelButtonTitle, for: UIControlState())
+    cancelButton.setTitle(cancelButtonTitle, for: UIControl.State())
     cancelButton.setTitleColor(.gray, for: .highlighted)
     cancelButton.addTarget(self, action: #selector(cancelAction), for: .touchUpInside)
     view.addSubview(cancelButton)
@@ -343,7 +346,7 @@ open class QRCodeReaderViewController: UIViewController {
 
   // MARK: - Catching Button Events
 
-  func cancelAction(_ button: UIButton) {
+  @objc func cancelAction(_ button: UIButton) {
     codeReader.stopScanning()
 
     if let _completionBlock = completionBlock {
@@ -353,11 +356,11 @@ open class QRCodeReaderViewController: UIViewController {
     delegate?.readerDidCancel(self)
   }
 
-  func switchCameraAction(_ button: SwitchCameraButton) {
+  @objc func switchCameraAction(_ button: SwitchCameraButton) {
     codeReader.switchDeviceInput()
   }
 
-  func toggleTorchAction(_ button: ToggleTorchButton) {
+  @objc func toggleTorchAction(_ button: ToggleTorchButton) {
     codeReader.toggleTorch()
   }
 }
